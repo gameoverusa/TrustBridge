@@ -27,7 +27,45 @@ const SUPABASE_KEY = 'sb_publishable_Z7mUa8ixd39NypurFbNnyA_NSoQTMWC';
 const categories=[['📱','Electronics'],['🏭','Machinery'],['🌾','Food & Agriculture'],['🚗','Vehicles'],['👕','Fashion'],['🏡','Home & Living']];
 const initialProducts=[{id:1,name:'Smartphone Pro Series',category:'Electronics',price:289,unit:'piece',type:'B2C',icon:'📱',origin:'Electronics · Sample'},{id:2,name:'Industrial Packaging Machine',category:'Machinery',price:4200,unit:'unit',type:'B2B',icon:'🏭',origin:'Machinery · Sample'},{id:3,name:'Premium Coffee Beans (Bulk)',category:'Food & Agriculture',price:85,unit:'25 kg bag',type:'B2B',icon:'☕',origin:'Agriculture · Sample'},{id:4,name:'Electric City Vehicle',category:'Vehicles',price:11900,unit:'vehicle',type:'B2B',icon:'🚙',origin:'Vehicles · Sample'},{id:5,name:'Cotton Casual Jacket',category:'Fashion',price:39,unit:'piece',type:'B2C',icon:'🧥',origin:'Fashion · Sample'},{id:6,name:'Modern Desk Lamp',category:'Home & Living',price:28,unit:'piece',type:'B2C',icon:'💡',origin:'Home · Sample'},{id:7,name:'Refined Cooking Oil (Bulk)',category:'Food & Agriculture',price:29,unit:'carton',type:'B2B',icon:'🛢️',origin:'Food · Sample'},{id:8,name:'Wireless Headphones',category:'Electronics',price:59,unit:'piece',type:'B2C',icon:'🎧',origin:'Electronics · Sample'}];
 const suppliers=[{name:'Sample Global Electronics',region:'Asia · Electronics',icon:'💻'},{name:'Sample Agro Exporters',region:'Africa · Food & Agriculture',icon:'🌾'},{name:'Sample Industrial Solutions',region:'Europe · Machinery',icon:'⚙️'}];
-const products=initialProducts;let cart=[];try{cart=JSON.parse(localStorage.getItem('tb_cart')||'[]');if(!Array.isArray(cart))cart=[]}catch(e){cart=[]}
+let products = initialProducts;
+
+async function loadProductsFromSupabase() {
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/products?select=*&is_active=eq.true`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
+
+    if (!response.ok) throw new Error(await response.text());
+
+    const data = await response.json();
+
+    if (data.length) {
+      products = data.map((p, i) => ({
+        ...p,
+        id: p.id,
+        name: p.name || 'Product',
+        category: p.category || 'Other',
+        price: p.price || 0,
+        unit: p.unit || 'piece',
+        type: p.type || 'B2B',
+        icon: p.icon || '📦',
+        origin: p.origin || '',
+        _index: i
+      }));
+    }
+
+    renderProducts();
+  } catch (error) {
+    console.error('Supabase error:', error);
+  }
+}
+  const products=initialProducts;let cart=[];try{cart=JSON.parse(localStorage.getItem('tb_cart')||'[]');if(!Array.isArray(cart))cart=[]}catch(e){cart=[]}
 function saveCart(){try{localStorage.setItem('tb_cart',JSON.stringify(cart))}catch(e){}document.getElementById('cartCount').textContent=cart.length}
 function toast(message){const el=document.getElementById('toast');el.textContent=message;el.style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.style.display='none',3500)}
 function safe(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -41,6 +79,7 @@ function openModal(type,id){const overlay=document.getElementById('overlay'),tit
 function removeCart(index){cart.splice(index,1);saveCart();openModal('cart')}
 function closeModal(){document.getElementById('overlay').classList.remove('open');document.body.style.overflow=''}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='Enter'&&document.activeElement?.id==='searchInput'){applyFilters();document.getElementById('marketplace').scrollIntoView()}});document.getElementById('year').textContent=new Date().getFullYear();renderCategories();renderSuppliers();applyFilters();saveCart();
+loadProductsFromSupabase();
 </script>
 </body>
 </html>
