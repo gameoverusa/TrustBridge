@@ -65,7 +65,7 @@ async function loadProductsFromSupabase() {
     console.error('Supabase error:', error);
   }
 }
-  const products=initialProducts;let cart=[];try{cart=JSON.parse(localStorage.getItem('tb_cart')||'[]');if(!Array.isArray(cart))cart=[]}catch(e){cart=[]}
+  let cart=[];try{cart=JSON.parse(localStorage.getItem('tb_cart')||'[]');if(!Array.isArray(cart))cart=[]}catch(e){cart=[]}
 function saveCart(){try{localStorage.setItem('tb_cart',JSON.stringify(cart))}catch(e){}document.getElementById('cartCount').textContent=cart.length}
 function toast(message){const el=document.getElementById('toast');el.textContent=message;el.style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.style.display='none',3500)}
 function safe(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
